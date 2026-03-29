@@ -13,6 +13,9 @@ const InitialBalanceModal: React.FC<InitialBalanceModalProps> = ({ isOpen, onSav
 
   if (!isOpen) return null;
 
+  const isEmpty = !amountDisplay || parseIDR(amountDisplay) === 0;
+  const buttonLabel = isEmpty ? "Mulai dengan Rp 0" : "Mulai";
+
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAmountDisplay(formatInputIDR(e.target.value));
   };
@@ -60,8 +63,8 @@ const InitialBalanceModal: React.FC<InitialBalanceModalProps> = ({ isOpen, onSav
             onClick={handleSave}
             className="w-full h-16 bg-indigo-600 hover:bg-indigo-700 text-white rounded-3xl flex items-center justify-center gap-3 font-black text-lg shadow-xl shadow-indigo-200 active:scale-95 transition-all duration-300 group"
           >
-            <span>Mulai Sekarang</span>
-            <ArrowRight size={24} className="group-hover:translate-x-1 transition-transform" />
+            <span>{buttonLabel}</span>
+            {!isEmpty && <ArrowRight size={24} className="group-hover:translate-x-1 transition-transform" />}
           </button>
         </div>
       </div>
