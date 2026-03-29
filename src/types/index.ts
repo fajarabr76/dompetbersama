@@ -9,6 +9,7 @@ export interface User {
   linkedPartnerId: string | null;
   linkedPartnerName: string | null;
   linkStatus: "unlinked" | "pending" | "linked";
+  initialBalance?: number;
   createdAt: Timestamp;
 }
 

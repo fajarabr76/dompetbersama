@@ -4,7 +4,8 @@ import {
   where, 
   getDocs, 
   doc, 
-  writeBatch
+  writeBatch,
+  updateDoc
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
@@ -77,5 +78,21 @@ export const disconnectPartner = async (
   } catch (error) {
     console.error("Disconnect failed", error);
     return { success: false, error: "Gagal memutuskan koneksi. Silakan coba lagi." };
+  }
+};
+
+export const updateInitialBalance = async (
+  uid: string,
+  balance: number
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const userRef = doc(db, "users", uid);
+    await updateDoc(userRef, {
+      initialBalance: balance,
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Update initial balance failed", error);
+    return { success: false, error: "Gagal menyimpan saldo awal. Silakan coba lagi." };
   }
 };

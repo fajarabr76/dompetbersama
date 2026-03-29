@@ -5,9 +5,10 @@ export const computeSummary = (
   transactions: Transaction[],
   ownerId: string,
   month: number,
-  year: number
+  year: number,
+  initialBalance: number = 0
 ): FinancialSummary => {
-  let currentBalance = 0;
+  let currentBalance = initialBalance;
   let monthlyIncome = 0;
   let monthlyExpense = 0;
   let totalActiveDebt = 0;

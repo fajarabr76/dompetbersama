@@ -8,11 +8,16 @@ export const formatIDR = (amount: number): string => {
 };
 
 export const parseIDR = (display: string): number => {
-  return parseInt(display.replace(/\D/g, "") || "0", 10);
+  const isNegative = display.trim().startsWith('-');
+  const numeric = display.replace(/\D/g, "");
+  const value = parseInt(numeric || "0", 10);
+  return isNegative ? -value : value;
 };
 
 export const formatInputIDR = (raw: string): string => {
+  const isNegative = raw.trim().startsWith('-');
   const numeric = raw.replace(/\D/g, "");
-  if (!numeric) return "";
-  return new Intl.NumberFormat('id-ID').format(parseInt(numeric, 10));
+  if (!numeric) return isNegative ? "-" : "";
+  const formatted = new Intl.NumberFormat('id-ID').format(parseInt(numeric, 10));
+  return isNegative ? `-${formatted}` : formatted;
 };

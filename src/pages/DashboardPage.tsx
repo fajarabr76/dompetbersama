@@ -7,17 +7,29 @@ import { formatIDR } from '../utils/formatCurrency';
 import { getCategoryIcon } from '../utils/categoryMeta';
 import { Link, useNavigate } from 'react-router-dom';
 import TransactionActionModal from '../components/ui/TransactionActionModal';
+import InitialBalanceModal from '../components/ui/InitialBalanceModal';
 import { deleteTransaction } from '../services/transactionService';
+import { updateInitialBalance } from '../services/userService';
 import type { Transaction } from '../types';
 
 const DashboardPage: React.FC = () => {
   useTransactions(); // Initialize real-time listeners
   const navigate = useNavigate();
-  const { currentUser } = useAuthStore();
+  const { currentUser, firebaseUser, partnerInitialBalance, setUser } = useAuthStore();
   const { myTransactions, partnerTransactions, isLoading } = useTransactionStore();
   const [viewMode, setViewMode] = useState<'pribadi' | 'pasangan'>('pribadi');
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleSaveInitialBalance = async (balance: number) => {
+    if (!currentUser || !firebaseUser) return;
+    const result = await updateInitialBalance(currentUser.uid, balance);
+    if (result.success) {
+      setUser({ ...currentUser, initialBalance: balance }, firebaseUser);
+    } else {
+      alert(result.error);
+    }
+  };
 
   const activeTransactions = useMemo(() => {
     return viewMode === 'pribadi' ? myTransactions : partnerTransactions;
@@ -25,13 +37,18 @@ const DashboardPage: React.FC = () => {
 
   const summary = useMemo(() => {
     const now = new Date();
+    const initialBalance = viewMode === 'pribadi' 
+      ? (currentUser?.initialBalance ?? 0) 
+      : (currentUser?.initialBalance ?? 0) + partnerInitialBalance;
+
     return computeSummary(
       activeTransactions,
       viewMode === 'pribadi' ? currentUser?.uid || '' : currentUser?.linkedPartnerId || '',
       now.getMonth(),
-      now.getFullYear()
+      now.getFullYear(),
+      initialBalance
     );
-  }, [activeTransactions, viewMode, currentUser]);
+  }, [activeTransactions, viewMode, currentUser, partnerInitialBalance]);
 
   const recentTransactions = useMemo(() => {
     return activeTransactions.slice(0, 5);
@@ -140,6 +157,11 @@ const DashboardPage: React.FC = () => {
             setSelectedTransaction(null);
           }
         }}
+      />
+
+      <InitialBalanceModal
+        isOpen={currentUser !== null && (currentUser.initialBalance === undefined || currentUser.initialBalance === null)}
+        onSave={handleSaveInitialBalance}
       />
     </div>
   );

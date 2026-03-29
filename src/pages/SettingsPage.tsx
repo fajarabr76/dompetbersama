@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Share2, Link as LinkIcon, Check, Loader2, LogOut, User as UserIcon, Unlink } from 'lucide-react';
+import { Share2, Link as LinkIcon, Check, Loader2, LogOut, User as UserIcon, Unlink, Wallet, X } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
-import { linkPartnerByCode, disconnectPartner } from '../services/userService';
+import { linkPartnerByCode, disconnectPartner, updateInitialBalance } from '../services/userService';
 import { auth } from '../lib/firebase';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
+import { formatIDR, parseIDR, formatInputIDR } from '../utils/formatCurrency';
 
 const SettingsPage: React.FC = () => {
-  const { currentUser, clearUser } = useAuthStore();
+  const { currentUser, clearUser, firebaseUser, setUser } = useAuthStore();
   const navigate = useNavigate();
   
   const [targetCode, setTargetCode] = useState('');
@@ -15,6 +16,11 @@ const SettingsPage: React.FC = () => {
   const [isLinking, setIsLinking] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [error, setError] = useState('');
+
+  // Initial Balance state
+  const [isEditingBalance, setIsEditingBalance] = useState(false);
+  const [tempBalance, setTempBalance] = useState('');
+  const [isSavingBalance, setIsSavingBalance] = useState(false);
 
   const handleCopy = () => {
     if (!currentUser?.partnerCode) return;
@@ -37,6 +43,27 @@ const SettingsPage: React.FC = () => {
       setTargetCode('');
     }
     setIsLinking(false);
+  };
+
+  const handleStartEditBalance = () => {
+    setTempBalance(formatIDR(currentUser?.initialBalance ?? 0));
+    setIsEditingBalance(true);
+  };
+
+  const handleSaveBalance = async () => {
+    if (!currentUser || !firebaseUser) return;
+    
+    setIsSavingBalance(true);
+    const parsed = parseIDR(tempBalance);
+    const result = await updateInitialBalance(currentUser.uid, parsed);
+    
+    if (result.success) {
+      setUser({ ...currentUser, initialBalance: parsed }, firebaseUser);
+      setIsEditingBalance(false);
+    } else {
+      setError(result.error || 'Gagal menyimpan saldo.');
+    }
+    setIsSavingBalance(false);
   };
 
   const handleDisconnect = async () => {
@@ -105,6 +132,61 @@ const SettingsPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Financial Section (Saldo Awal) */}
+      <section className="space-y-4">
+        <h3 className="text-lg font-bold text-gray-900">Keuangan</h3>
+        <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+                <Wallet size={20} />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-gray-400">SALDO AWAL SAYA</p>
+                {isEditingBalance ? (
+                  <input
+                    type="text"
+                    value={tempBalance}
+                    onChange={(e) => setTempBalance(formatInputIDR(e.target.value))}
+                    className="text-lg font-bold text-gray-900 focus:outline-none border-b-2 border-indigo-600 w-full bg-transparent"
+                    autoFocus
+                  />
+                ) : (
+                  <p className="text-lg font-bold text-gray-900">{formatIDR(currentUser.initialBalance ?? 0)}</p>
+                )}
+              </div>
+            </div>
+            {!isEditingBalance && (
+              <button 
+                onClick={handleStartEditBalance}
+                className="text-sm font-bold text-indigo-600 px-4 py-2 bg-indigo-50 rounded-xl active:scale-95 transition-all outline-none"
+              >
+                Ubah
+              </button>
+            )}
+          </div>
+
+          {isEditingBalance && (
+            <div className="flex gap-2">
+              <button
+                disabled={isSavingBalance}
+                onClick={handleSaveBalance}
+                className="flex-1 h-12 bg-indigo-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all outline-none"
+              >
+                {isSavingBalance ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                Simpan
+              </button>
+              <button
+                onClick={() => setIsEditingBalance(false)}
+                className="w-12 h-12 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center active:scale-95 transition-all outline-none"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Link / Unlink Section */}
       <section className="space-y-4">
         <h3 className="text-lg font-bold text-gray-900">Koneksi Pasangan</h3>
@@ -148,7 +230,7 @@ const SettingsPage: React.FC = () => {
             <button
               disabled={isLinking || targetCode.length < 6}
               onClick={handleLink}
-              className="w-full h-14 bg-indigo-600 disabled:bg-gray-200 text-white rounded-2xl flex items-center justify-center gap-3 font-bold shadow-lg shadow-indigo-100 active:scale-95 transition-all"
+              className="w-full h-14 bg-indigo-600 disabled:bg-gray-200 text-white rounded-2xl flex items-center justify-center gap-3 font-bold shadow-lg shadow-indigo-100 active:scale-95 transition-all outline-none"
             >
               {isLinking ? <Loader2 size={20} className="animate-spin" /> : <LinkIcon size={20} />}
               <span>Hubungkan Akun</span>

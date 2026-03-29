@@ -10,7 +10,7 @@ interface AuthProviderProps {
 }
 
 const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const { setUser, setLoading, clearUser } = useAuthStore();
+  const { currentUser, setUser, setLoading, clearUser, setPartnerInitialBalance } = useAuthStore();
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (fbUser) => {
@@ -37,6 +37,26 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     return () => unsubscribeAuth();
   }, [setUser, setLoading, clearUser]);
+
+  // Setup real-time listener for partner document
+  useEffect(() => {
+    if (!currentUser?.linkedPartnerId) {
+      setPartnerInitialBalance(0);
+      return;
+    }
+
+    const partnerRef = doc(db, 'users', currentUser.linkedPartnerId);
+    const unsubscribePartner = onSnapshot(partnerRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const partnerData = docSnap.data();
+        setPartnerInitialBalance(partnerData?.initialBalance || 0);
+      } else {
+        setPartnerInitialBalance(0);
+      }
+    });
+
+    return () => unsubscribePartner();
+  }, [currentUser?.linkedPartnerId, setPartnerInitialBalance]);
 
   return <>{children}</>;
 };
