@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --color-brand: #4F46E5;
+  --color-brand-light: #DBEAFE;
+  --color-brand-dark: #1D4ED8;
+  --color-partner: #6D28D9;
+  --color-partner-light: #EDE9FE;
+  --color-income: #16A34A;
+  --color-expense: #DC2626;
+  --color-debt: #EA580C;
+  --color-debt-payment: #2563EB;
+}
+
+@theme {
+  --color-primary: var(--color-brand);
+  --color-secondary: var(--color-partner);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+body {
+  background-color: #F3F4F6;
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+.mobile-wrapper {
+  max-width: 480px;
+  margin: 0 auto;
+  background-color: #FFFFFF;
+  min-height: 100dvh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Base UI Components (Atomic) */
+.btn {
+  @apply h-12 px-4 rounded-xl font-semibold flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100;
+}
+
+.btn-primary {
+  @apply bg-primary text-white shadow-sm;
+}
+
+.card {
+  @apply bg-white rounded-2xl p-4 shadow-sm border border-gray-100;
+}
+
+/* Transisi Halaman */
+.page-enter {
+  opacity: 0;
+  transform: translateX(20px);
+}
+.page-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 200ms, transform 200ms;
+}
+.page-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+.page-exit-active {
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: opacity 200ms, transform 200ms;
+}
