@@ -63,7 +63,7 @@ const HistoryPage: React.FC = () => {
           <button
             key={m.id}
             disabled={m.id !== 'saya' && !currentUser?.linkedPartnerId}
-            onClick={() => setFilterMode(m.id as any)}
+            onClick={() => setFilterMode(m.id as 'saya' | 'pasangan' | 'semua')}
             className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${
               filterMode === m.id ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 disabled:opacity-50'
             }`}

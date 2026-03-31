@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Edit2, Trash2, X, AlertTriangle } from 'lucide-react';
 import type { Transaction } from '../../types';
@@ -23,12 +23,15 @@ const TransactionActionModal: React.FC<TransactionActionModalProps> = ({
 }) => {
   const [viewState, setViewState] = useState<ModalState>('menu');
 
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
   // Reset state every time the modal is opened
-  useEffect(() => {
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) {
       setViewState('menu');
     }
-  }, [isOpen]);
+  }
 
   if (!isOpen || !transaction) return null;
 

@@ -67,7 +67,7 @@ export const updateTransaction = async (
   data: Pick<Transaction, 'amount' | 'type' | 'category' | 'note' | 'creditorName'> & { date?: Date }
 ) => {
   try {
-    const updatePayload: any = {
+    const updatePayload: Partial<Omit<Transaction, 'id' | 'date' | 'createdAt'>> & { date?: Timestamp } = {
       amount: data.amount,
       type: data.type,
       category: data.category,
